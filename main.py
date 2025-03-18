@@ -62,11 +62,24 @@ def search_wikipedia(query):
         return "I couldn't find any information on that topic."
 
 
+# Функция для поиска видео на YouTube
+def search_youtube_video(query):
+    api_key = "YOUR_YOUTUBE_API_KEY"
+    url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={query}&key={api_key}&type=video"
+    response = requests.get(url).json()
+    if response.get("items"):
+        video_id = response["items"][0]["id"]["videoId"]
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+        print(f"YouTube Video URL: {video_url}")
+        return f"Here is a YouTube video related to {query}: {video_url}"
+    else:
+        return "I couldn't find any videos for that query."
+
 # Инициализация Pygame для воспроизведения музыки
 mixer.init()
 
 # Глобальные переменные для управления музыкой
-music_folder = "C://Users/kgm20/Music/my_music"
+music_folder = "C://Users/kgm20/Music/my_music"  # Укажите путь к папке с музыкой
 current_song_index = -1
 is_playing = False
 
@@ -167,6 +180,12 @@ def main():
             speak(response)
             continue
 
+        # Поиск видео на YouTube
+        if "find video of" in query or "show me a video of" in query:
+            keyword = query.replace("find video of", "").replace("show me a video of", "").strip()
+            response = search_youtube_video(keyword)
+            speak(response)
+            continue
 
         # Управление музыкой
         if "play music" in query or "play song" in query:
