@@ -2,6 +2,7 @@ import speech_recognition as sr
 import pyttsx3
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import wikipedia
 
 # Инициализация движка для синтеза речи
 engine = pyttsx3.init()
@@ -52,13 +53,24 @@ def calculate_expression(expression):
     except Exception:
         return "I'm sorry, I couldn't calculate that."
 
+# Функция для поиска фактов в Wikipedia
+def search_wikipedia(query):
+    try:
+        summary = wikipedia.summary(query, sentences=2)
+        return summary
+    except wikipedia.exceptions.DisambiguationError as e:
+        return "There are multiple results for this query. Can you please specify?"
+    except wikipedia.exceptions.PageError:
+        return "I couldn't find any information on that topic."
+
 # Основной цикл работы ассистента
 def main():
     speak("Hello! I'm your voice assistant. How can I help you?")
     
     # Инициализация истории диалога
-    chat_history_ids = None  # Будем хранить тензор истории диалога
-    max_length = 512         # Максимальная длина последовательности для модели
+    chat_history = []  # Будем хранить историю в виде списка строк
+    max_length = 512   # Максимальная длина последовательности для модели
+    max_history = 4    # Максимальное количество обменов в истории (2 пользователя + 2 ассистента)
 
     while True:
         query = listen()
@@ -73,44 +85,52 @@ def main():
             speak(response)
             continue
 
-        # Токенизация нового запроса
-        new_input_ids = tokenizer.encode(query + tokenizer.eos_token, return_tensors="pt")
+        # Проверка на запрос фактов
+        if any(word in query for word in ["what is", "who is", "tell me about", "explain"]):
+            response = search_wikipedia(query)
+            speak(response)
+            continue
 
-        # Объединение нового запроса с историей диалога
-        if chat_history_ids is None:
-            chat_history_ids = new_input_ids
-        else:
-            chat_history_ids = torch.cat([chat_history_ids, new_input_ids], dim=-1)
+        # Добавляем запрос пользователя в историю
+        chat_history.append(query)
 
-        # Обрезка истории до максимальной длины
-        if chat_history_ids.shape[-1] > max_length:
-            chat_history_ids = chat_history_ids[:, -max_length:]
+        # Создаем входной текст для модели (ограничиваем историю до max_history)
+        input_text = tokenizer.eos_token.join(chat_history[-max_history:]) + tokenizer.eos_token
+
+        # Токенизация входного текста
+        inputs = tokenizer(input_text, return_tensors="pt", truncation=True, max_length=max_length)
+        input_ids = inputs["input_ids"]
+        attention_mask = inputs["attention_mask"]
 
         # Генерация ответа
         response_ids = model.generate(
-            chat_history_ids,
+            input_ids,
+            attention_mask=attention_mask,
             max_length=max_length,
             pad_token_id=tokenizer.eos_token_id,
             no_repeat_ngram_size=3,
-            top_p=0.92,
+            top_p=0.95,  # Увеличиваем разнообразие ответов
             top_k=50,
-            temperature=0.7,
+            temperature=0.8,  # Делаем ответы более естественными
             do_sample=True
         )
 
         # Декодирование ответа
-        response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
+        full_response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
 
-        # Извлечение только нового ответа (без повторения истории)
-        new_response = response[len(tokenizer.decode(chat_history_ids[0], skip_special_tokens=True)):]
-        new_response = new_response.strip()
+        # Извлечение только нового ответа
+        new_response = full_response.split(tokenizer.eos_token)[-1].strip()
+
+        # Убираем повторяющийся текст пользователя из ответа
+        for user_input in chat_history[-max_history:]:
+            new_response = new_response.replace(user_input, "").strip()
 
         # Фильтрация некорректных ответов
-        if not new_response or len(new_response.split()) < 2:
-            new_response = "I'm sorry, I didn't understand that."
+        if not new_response or len(new_response.split()) < 2:  # Минимум 2 слова
+            new_response = "I'm sorry, I didn't fully understand that. Could you clarify?"
 
-        # Обновление истории диалога
-        chat_history_ids = response_ids
+        # Добавляем ответ модели в историю
+        chat_history.append(new_response)
 
         # Ответ пользователю
         speak(new_response)
