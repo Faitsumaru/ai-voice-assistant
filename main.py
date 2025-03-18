@@ -16,3 +16,23 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
 
+# Функция для распознавания речи
+def listen():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
+        try:
+            print("Recognizing...")
+            query = recognizer.recognize_google(audio, language="en-US")
+            print(f"User: {query}")
+            return query.lower()
+        except sr.UnknownValueError:
+            speak("Sorry, I didn't catch that. Please repeat.")
+            return ""
+        except sr.RequestError:
+            speak("Sorry, there was an issue with speech recognition.")
+            return ""
+
