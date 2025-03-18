@@ -36,3 +36,8 @@ def listen():
             speak("Sorry, there was an issue with speech recognition.")
             return ""
 
+# Загрузка модели DialoGPT и токенизатора
+model_name = "microsoft/DialoGPT-medium"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
