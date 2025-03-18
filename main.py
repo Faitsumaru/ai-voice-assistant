@@ -12,9 +12,12 @@ engine.setProperty('voice', voices[0].id)  # Выбор мужского гол�
 
 # Функция для озвучивания текста
 def speak(text):
-    print(f"Assistant: {text}")
-    engine.say(text)
-    engine.runAndWait()
+    if text.strip():  # Проверяем, что текст не пустой
+        print(f"Assistant: {text}")
+        engine.say(text)
+        engine.runAndWait()
+    else:
+        speak("Sorry, I couldn't generate a response.")
 
 # Функция для распознавания речи
 def listen():
@@ -41,12 +44,21 @@ model_name = "microsoft/DialoGPT-medium"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
+# Функция для выполнения математических операций
+def calculate_expression(expression):
+    try:
+        result = eval(expression)  # Выполняем математическое выражение
+        return str(result)
+    except Exception:
+        return "I'm sorry, I couldn't calculate that."
+
 # Основной цикл работы ассистента
 def main():
     speak("Hello! I'm your voice assistant. How can I help you?")
     
     # Инициализация истории диалога
-    chat_history_ids = None
+    chat_history_ids = None  # Будем хранить тензор истории диалога
+    max_length = 512         # Максимальная длина последовательности для модели
 
     while True:
         query = listen()
@@ -55,34 +67,53 @@ def main():
             speak("Goodbye!")
             break
 
-        # Токенизация входного запроса
+        # Проверка на математическое выражение
+        if any(op in query for op in ["+", "-", "*", "/"]):
+            response = calculate_expression(query)
+            speak(response)
+            continue
+
+        # Токенизация нового запроса
         new_input_ids = tokenizer.encode(query + tokenizer.eos_token, return_tensors="pt")
 
-        # Добавление нового запроса к истории диалога
+        # Объединение нового запроса с историей диалога
         if chat_history_ids is None:
             chat_history_ids = new_input_ids
         else:
             chat_history_ids = torch.cat([chat_history_ids, new_input_ids], dim=-1)
 
+        # Обрезка истории до максимальной длины
+        if chat_history_ids.shape[-1] > max_length:
+            chat_history_ids = chat_history_ids[:, -max_length:]
+
         # Генерация ответа
         response_ids = model.generate(
             chat_history_ids,
-            max_length=1000,
+            max_length=max_length,
             pad_token_id=tokenizer.eos_token_id,
-            no_repeat_ngram_size=2,
+            no_repeat_ngram_size=3,
             top_p=0.92,
             top_k=50,
-            temperature=0.7
+            temperature=0.7,
+            do_sample=True
         )
 
         # Декодирование ответа
-        response = tokenizer.decode(response_ids[:, chat_history_ids.shape[-1]:][0], skip_special_tokens=True)
+        response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
+
+        # Извлечение только нового ответа (без повторения истории)
+        new_response = response[len(tokenizer.decode(chat_history_ids[0], skip_special_tokens=True)):]
+        new_response = new_response.strip()
+
+        # Фильтрация некорректных ответов
+        if not new_response or len(new_response.split()) < 2:
+            new_response = "I'm sorry, I didn't understand that."
 
         # Обновление истории диалога
         chat_history_ids = response_ids
 
         # Ответ пользователю
-        speak(response)
+        speak(new_response)
 
 if __name__ == "__main__":
     main()
