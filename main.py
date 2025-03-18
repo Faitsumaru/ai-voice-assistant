@@ -2,7 +2,11 @@ import speech_recognition as sr
 import pyttsx3
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import requests
+import webbrowser
 import wikipedia
+import os
+from pygame import mixer
 
 # Инициализация движка для синтеза речи
 engine = pyttsx3.init()
@@ -34,6 +38,8 @@ def listen():
             print(f"User: {query}")
             return query.lower()
         except sr.UnknownValueError:
+            if is_playing:
+                return ""  # Игнорируем нераспознанный ввод во время воспроизведения
             speak("Sorry, I didn't catch that. Please repeat.")
             return ""
         except sr.RequestError:
@@ -45,14 +51,6 @@ model_name = "microsoft/DialoGPT-medium"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Функция для выполнения математических операций
-def calculate_expression(expression):
-    try:
-        result = eval(expression)  # Выполняем математическое выражение
-        return str(result)
-    except Exception:
-        return "I'm sorry, I couldn't calculate that."
-
 # Функция для поиска фактов в Wikipedia
 def search_wikipedia(query):
     try:
@@ -63,17 +61,91 @@ def search_wikipedia(query):
     except wikipedia.exceptions.PageError:
         return "I couldn't find any information on that topic."
 
+
+# Инициализация Pygame для воспроизведения музыки
+mixer.init()
+
+# Глобальные переменные для управления музыкой
+music_folder = "C://Users/kgm20/Music/my_music"
+current_song_index = -1
+is_playing = False
+
+# Функция для поиска музыки по названию
+def find_music_by_name(query):
+    global current_song_index
+    files = [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
+    matches = []
+
+    # Поиск файлов, содержащих ключевые слова из запроса
+    for i, file in enumerate(files):
+        if query.lower() in file.lower():
+            matches.append((i, file))  # Сохраняем индекс и имя файла
+
+    if not matches:
+        return None  # Ничего не найдено
+
+    # Если найдено несколько совпадений, выбираем первое
+    current_song_index = matches[0][0]
+    return os.path.join(music_folder, matches[0][1])
+
+# Функция для воспроизведения музыки
+def play_music(query):
+    global is_playing
+
+    # Остановка музыки
+    if "stop" in query or "pause" in query:
+        if is_playing:
+            mixer.music.pause()
+            is_playing = False
+            return "Music paused."
+        else:
+            return "No music is currently playing."
+
+    # Переключение на следующую песню
+    if "next" in query:
+        return play_next_song()
+
+    # Удаление команды "play music" из запроса
+    query = query.replace("play music", "").replace("play song", "").strip()
+
+    # Поиск музыки по названию
+    song_path = find_music_by_name(query)
+    if song_path:
+        mixer.music.load(song_path)
+        mixer.music.play()
+        is_playing = True
+        return f"Playing: {os.path.basename(song_path)}"
+    else:
+        return "I couldn't find any music matching your query."
+
+# Функция для воспроизведения следующей песни
+def play_next_song():
+    global current_song_index, is_playing
+    files = [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
+    if not files:
+        return "No music files found."
+
+    current_song_index += 1
+    if current_song_index >= len(files):
+        current_song_index = 0  # Вернуться к первой песне
+
+    next_song_path = os.path.join(music_folder, files[current_song_index])
+    mixer.music.load(next_song_path)
+    mixer.music.play()
+    is_playing = True
+    return f"Playing next song: {files[current_song_index]}"
+
 # Основной цикл работы ассистента
 def main():
+    global is_playing
     speak("Hello! I'm your voice assistant. How can I help you?")
     
-    # Инициализация истории диалога
-    chat_history = []  # Будем хранить историю в виде списка строк
-    max_length = 512   # Максимальная длина последовательности для модели
-    max_history = 4    # Максимальное количество обменов в истории (2 пользователя + 2 ассистента)
-
     while True:
         query = listen()
+
+        # Если музыка играет, игнорируем все запросы, кроме команд управления музыкой
+        if is_playing and not any(cmd in query for cmd in ["next song", "stop music", "play music"]):
+            continue
 
         if "exit" in query or "bye" in query:
             speak("Goodbye!")
@@ -81,58 +153,56 @@ def main():
 
         # Проверка на математическое выражение
         if any(op in query for op in ["+", "-", "*", "/"]):
-            response = calculate_expression(query)
-            speak(response)
-            continue
+            try:
+                result = eval(query)
+                speak(f"The answer is {result}.")
+                continue
+            except Exception:
+                speak("I'm sorry, I couldn't calculate that.")
+                continue
 
-        # Проверка на запрос фактов
+        # Поиск фактов в Wikipedia
         if any(word in query for word in ["what is", "who is", "tell me about", "explain"]):
             response = search_wikipedia(query)
             speak(response)
             continue
 
-        # Добавляем запрос пользователя в историю
-        chat_history.append(query)
 
-        # Создаем входной текст для модели (ограничиваем историю до max_history)
-        input_text = tokenizer.eos_token.join(chat_history[-max_history:]) + tokenizer.eos_token
+        # Управление музыкой
+        if "play music" in query or "play song" in query:
+            response = play_music(query)
+            speak(response)
+            continue
 
-        # Токенизация входного текста
-        inputs = tokenizer(input_text, return_tensors="pt", truncation=True, max_length=max_length)
-        input_ids = inputs["input_ids"]
-        attention_mask = inputs["attention_mask"]
+        if "stop music" in query or "pause music" in query:
+            response = play_music("stop")
+            speak(response)
+            continue
 
-        # Генерация ответа
+        if "next song" in query:
+            response = play_music("next")
+            speak(response)
+            continue
+
+        # Текстовый диалог
+        inputs = tokenizer(query + tokenizer.eos_token, return_tensors="pt", truncation=True, max_length=512)
         response_ids = model.generate(
-            input_ids,
-            attention_mask=attention_mask,
-            max_length=max_length,
+            inputs["input_ids"],
+            max_length=512,
             pad_token_id=tokenizer.eos_token_id,
             no_repeat_ngram_size=3,
-            top_p=0.95,  # Увеличиваем разнообразие ответов
+            top_p=0.95,
             top_k=50,
-            temperature=0.8,  # Делаем ответы более естественными
+            temperature=0.8,
             do_sample=True
         )
-
-        # Декодирование ответа
-        full_response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
-
-        # Извлечение только нового ответа
-        new_response = full_response.split(tokenizer.eos_token)[-1].strip()
-
-        # Убираем повторяющийся текст пользователя из ответа
-        for user_input in chat_history[-max_history:]:
-            new_response = new_response.replace(user_input, "").strip()
+        response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
+        new_response = response.split(tokenizer.eos_token)[-1].strip()
 
         # Фильтрация некорректных ответов
         if not new_response or len(new_response.split()) < 2:  # Минимум 2 слова
             new_response = "I'm sorry, I didn't fully understand that. Could you clarify?"
 
-        # Добавляем ответ модели в историю
-        chat_history.append(new_response)
-
-        # Ответ пользователю
         speak(new_response)
 
 if __name__ == "__main__":
