@@ -51,3 +51,31 @@ It is designed to handle conversational dialogue in English.
     * `main()`: Manages the main loop of the assistant, handling user input and generating responses.
 
 ---
+
+## How to Use
+
+### Prerequisites
+* Install the required dependencies:
+```
+pip install speechrecognition pyttsx3 transformers torch pygame wikipedia requests
+```
+
+### Running the Code
+1. Clone this repository:
+```
+git clone https://github.com/Faitsumaru/ai-voice-assistant
+cd ai-voice-assistant
+```
+2. Set up API keys:
+    * Replace `"your_api_key"` for _YouTube_ and `"your_api_key"` for _Unsplash_ in the code with your actual API keys.
+    * Ensure the `music_folder` variable points to your local folder containing MP3 files.
+
+3. Run the script:
+```
+python main.py
+```
+4. Interact with the Assistant:
+    * Speak into your microphone to ask questions or give commands.
+    * The assistant will respond verbally and maintain context throughout the conversation.
+
+---
