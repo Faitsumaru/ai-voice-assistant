@@ -61,17 +61,28 @@ def search_wikipedia(query):
     except wikipedia.exceptions.PageError:
         return "I couldn't find any information on that topic."
 
+# Функция для поиска изображений (Unsplash API)
+def search_image(query):
+    access_key = "your_api_key"  # Замените на ваш ключ API Unsplash
+    url = f"https://api.unsplash.com/search/photos?query={query}&client_id={access_key}"
+    response = requests.get(url).json()
+    if response.get("results"):
+        image_url = response["results"][0]["urls"]["small"]
+        print(f"Image URL: {image_url}")  # Выводим ссылку в консоль
+        return f"Here is an image related to {query}."
+    else:
+        return "I couldn't find any images for that query."
 
 # Функция для поиска видео на YouTube
 def search_youtube_video(query):
-    api_key = "YOUR_YOUTUBE_API_KEY"
+    api_key = "your_api_key"  # Замените на ваш ключ YouTube API
     url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={query}&key={api_key}&type=video"
     response = requests.get(url).json()
     if response.get("items"):
         video_id = response["items"][0]["id"]["videoId"]
         video_url = f"https://www.youtube.com/watch?v={video_id}"
-        print(f"YouTube Video URL: {video_url}")
-        return f"Here is a YouTube video related to {query}: {video_url}"
+        print(f"YouTube Video URL: {video_url}")  # Выводим ссылку в консоль
+        return f"Here is a YouTube video related to {query}."
     else:
         return "I couldn't find any videos for that query."
 
@@ -79,7 +90,7 @@ def search_youtube_video(query):
 mixer.init()
 
 # Глобальные переменные для управления музыкой
-music_folder = "C://Users/kgm20/Music/my_music"  # Укажите путь к папке с музыкой
+music_folder = "C://your_folder_path"  # Укажите путь к папке с музыкой
 current_song_index = -1
 is_playing = False
 
@@ -180,6 +191,13 @@ def main():
             speak(response)
             continue
 
+        # Поиск изображений
+        if "find image of" in query or "show me an image of" in query:
+            keyword = query.replace("find image of", "").replace("show me an image of", "").strip()
+            response = search_image(keyword)
+            speak(response)
+            continue
+
         # Поиск видео на YouTube
         if "find video of" in query or "show me a video of" in query:
             keyword = query.replace("find video of", "").replace("show me a video of", "").strip()
@@ -217,6 +235,9 @@ def main():
         )
         response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
         new_response = response.split(tokenizer.eos_token)[-1].strip()
+
+        # Убираем повторяющийся текст пользователя из ответа
+        new_response = new_response.replace(query, "").strip()
 
         # Фильтрация некорректных ответов
         if not new_response or len(new_response.split()) < 2:  # Минимум 2 слова
