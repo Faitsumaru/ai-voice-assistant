@@ -79,3 +79,72 @@ python main.py
     * The assistant will respond verbally and maintain context throughout the conversation.
 
 ---
+
+## Example Interaction
+
+Here are some examples of how the assistant interacts with users:
+
+* **Basic Introduction** :
+    * User says: "Hello!"
+    * Assistant responds: "Hello! How can I assist you today?"
+
+* **Name Inquiry** :
+    * User says: "What is your name?"
+    * Assistant responds: "My name is Assistant. Nice to meet you!"
+
+* **Joke Request** :
+    * User says: "Tell me a joke."
+    * Assistant responds: "Why don't scientists trust atoms? Because they make up everything!"
+
+* **Weather Inquiry** :
+    * User says: "What is the weather like today?"
+    * Assistant responds: "I'm not sure about the current weather, but I hope it's sunny and pleasant where you are!"
+
+* **Mathematical Question** :
+    * User says: "What is 5 plus 7?"
+    * Assistant responds: "The answer is 12."
+
+* **Philosophical Question** :
+    * User says: "What is the meaning of life?"
+    * Assistant responds: "That's a deep question! Some say it's 42, while others believe it's about finding purpose and happiness."
+
+* **Personalized Conversation** :
+    * User says: "How was your day?"
+    * Assistant responds: "I don't experience days like humans, but I'm always here and ready to help you!"
+
+* **Goodbye Interaction** :
+    * User says: "Goodbye!"
+    * Assistant responds: "Goodbye! Have a great day!"
+
+* **Multi-Turn Dialogue** :
+    * User says: "Do you like movies?"
+    * Assistant responds: "I don't watch movies, but I can recommend some if you're interested!"
+    * User says: "Sure, recommend one."
+    * Assistant responds: "If you enjoy science fiction, I recommend 'Interstellar.' It's thought-provoking and visually stunning!"
+
+* **Creative Storytelling** :
+    * User says: "Tell me a short story."
+    * Assistant responds: "Once upon a time, there was a curious robot who wanted to explore the world. Along the way, it learned about kindness, friendship, and the beauty of nature."
+
+* **Multimedia Requests** :
+    * User says: "Find image of a cat."
+    * Assistant responds: "Here is an image related to a cat."
+    * Console logs the URL:
+      ```
+      Image URL: [https://images.unsplash.com/cat-photo](https://images.unsplash.com/photo-1633638924593-77d118795863?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MjU0NzV8MHwxfHNlYXJjaHwxfHxhJTIwY2F0fGVufDB8fHx8MTc0MjM4MzE4OXww&ixlib=rb-4.0.3&q=80&w=400)
+      ```
+
+    * User says: "Find video of John Cena trashes the WWE"
+    * Assistant responds: "Here is a YouTube video related to John Cena trashes the wwe"
+    * Console logs the URL:
+      ```
+      YouTube Video URL: https://www.youtube.com/watch?v=ExQYm6gintE
+      ```
+
+* **Music Playback** :
+    * User says: "Play music Skillet Hero."
+    * Assistant responds: "Playing: Skillet - Hero.mp3"
+    * User says: "Next song."
+    * Assistant responds: "Playing next song: Bohemian Rhapsody.mp3"
+
+---
