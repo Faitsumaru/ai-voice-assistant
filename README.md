@@ -23,3 +23,31 @@ It is designed to handle conversational dialogue in English.
 > version: Mar 2025, created by Gleb 'Faitsuma' Kiryakov
 
 ---
+
+## Project Structure
+
+### Code Overview
+1. **Speech Recognition** :
+    * The program uses the `speech_recognition` library to capture audio input from the microphone.
+    * Google Speech-to-Text API is employed for English speech recognition with the `language="en-US"` parameter.
+
+2. **Model Architecture** :
+    * The **DialoGPT-medium** model is loaded using Hugging Face's `transformers` library.
+    * A tokenizer preprocesses user input into tokenized sequences, which are fed into the model for response generation.
+    * The model supports multi-turn conversations by maintaining a history of dialogues (`chat_history_ids`).
+
+3. **Text-to-Speech** :
+    * The `pyttsx3` library is used to synthesize and vocalize the generated responses.
+    * Supports system voices, with options to customize voice, speed, and volume.
+
+4. **Multimedia Integration** :
+    * **Unsplash API**: Searches for images based on user queries.
+    * **YouTube Data API**: Finds and provides links to relevant videos.
+    * **Music Playback**: Plays local MP3 files with playback controls (`play`, `pause`, `next`).
+
+5. **Utility Functions** :
+    * `listen()`: Captures and processes user speech.
+    * `speak()`: Converts text responses into spoken output.
+    * `main()`: Manages the main loop of the assistant, handling user input and generating responses.
+
+---
