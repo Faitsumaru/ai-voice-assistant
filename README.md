@@ -131,7 +131,7 @@ Here are some examples of how the assistant interacts with users:
     * Assistant responds: "Here is an image related to a cat."
     * Console logs the URL:
       ```
-      Image URL: [https://images.unsplash.com/cat-photo](https://images.unsplash.com/photo-1633638924593-77d118795863?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MjU0NzV8MHwxfHNlYXJjaHwxfHxhJTIwY2F0fGVufDB8fHx8MTc0MjM4MzE4OXww&ixlib=rb-4.0.3&q=80&w=400)
+      Image URL: https://images.unsplash.com/photo-1633638924593-77d118795863?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MjU0NzV8MHwxfHNlYXJjaHwxfHxhJTIwY2F0fGVufDB8fHx8MTc0MjM4MzE4OXww&ixlib=rb-4.0.3&q=80&w=400
       ```
 
     * User says: "Find video of John Cena trashes the WWE"
@@ -148,3 +148,14 @@ Here are some examples of how the assistant interacts with users:
     * Assistant responds: "Playing next song: Bohemian Rhapsody.mp3"
 
 ---
+
+## Documentation
+
+* **DialoGPT** : [Hugging Face DialoGPT](https://huggingface.co/microsoft/DialoGPT-medium)
+* **Speech Recognition** : [SpeechRecognition Library](https://pypi.org/project/SpeechRecognition/)
+* **Text-to-Speech** : [pyttsx3 Documentation](https://pypi.org/project/pyttsx3/)
+* **Transformers Library** : [Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
+* **PyTorch** : [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+* **Google Speech-to-Text API** : [Google Cloud Speech-to-Text](https://cloud.google.com/speech-to-text)
+* **Unsplash API** : [Unsplash Developers](https://unsplash.com/developers)
+* **YouTube Data API** : [YouTube API Documentation](https://developers.google.com/youtube/v3)
