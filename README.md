@@ -6,3 +6,20 @@ The assistant uses speech recognition to listen to user queries, processes them 
 It is designed to handle conversational dialogue in English.
 
 ---
+
+### Key Features:
+* **Speech Recognition** : Utilizes Google Speech-to-Text API for accurate English speech recognition.
+* **Natural Language Processing** : Employs the DialoGPT model from Hugging Face's Transformers library for generating context-aware responses.
+* **Text-to-Speech** : Uses `pyttsx3` for offline text-to-speech synthesis.
+* **Context Awareness** : Maintains conversation history to provide coherent and contextually relevant responses.
+* **Customizable** : Supports adjustments to voice, speed, and other parameters for a personalized experience.
+* **Multimedia Integration** :
+  * Searches for images using **Unsplash API**.
+  * Finds videos on **YouTube** via YouTube Data API.
+  * Plays local music files with playback controls (`play`, `pause`, `next`).
+* **Mathematical Operations** : Performs simple arithmetic calculations.
+* **Wikipedia Integration** : Provides summaries of topics using Wikipedia API.
+
+> version: Mar 2025, created by Gleb 'Faitsuma' Kiryakov
+
+---
